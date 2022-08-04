@@ -1,0 +1,34 @@
+{
+  "AddonUUID": "00000000-0000-0000-0000-00000ca7a109",
+  "AddonVersion": "0.0.113",
+  "DebugPort": 4500,
+  "WebappBaseUrl": "https://app.sandbox.pepperi.com",
+  "DefaultEditor": "main",
+  "Endpoints": [
+    "installation.ts",
+    "api.ts",
+    "settings.ts",
+    "publish.ts"
+  ],
+  "Editors": [
+    "main"
+  ],
+  "PublishConfig": {
+    "ClientStack": "ng10",
+    "Editors": [
+      {
+        "ParentPackageName": "Open Catalog",
+        "PackageName": "open_catalog",
+        "Description": "Open Catalog"
+      }
+    ],
+    "Dependencies": {
+      "adal": "1.0.100",
+      "data_views": "1.0.1",
+      "import_export_atd": "1.1.177",
+      "pepperi_elastic_search": "0.0.100",
+      "pns": "1.0.62",
+      "webapi": "16.55.261"
+    }
+  }
+}

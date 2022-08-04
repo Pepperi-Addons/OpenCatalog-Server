@@ -1,0 +1,47 @@
+:host {
+    height: inherit;
+    display: block;
+}
+
+.formContainer {
+    height: inherit;
+    display: grid;
+    grid-template-rows: auto 1fr;
+
+    .top-bar {
+        margin-top: 1rem;
+    }
+
+    .mat-tab-group {
+        height: inherit;
+    }
+
+    ::ng-deep {
+        .mat-tab-body-wrapper {
+            height: inherit;
+        }
+    }
+
+    .history-container {
+        height: inherit;
+        display: grid;
+        grid-template-rows: auto 1fr;
+    }
+}
+
+.disable-accordion{
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.acc-content-width{
+    width: 465px;
+}
+
+.acc-description-width{
+    width: 544px;
+}
+
+.description-width{
+    width: 832px;
+}
