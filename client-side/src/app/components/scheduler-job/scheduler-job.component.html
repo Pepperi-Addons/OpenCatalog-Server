@@ -1,0 +1,17 @@
+<div [formGroup]="schedulerForm" class="scheduler-job-container">
+    <pep-select [key]="'type'" [value]="jobFrequencyType" [options]="schedulerJobOptions" [renderTitle]="false"
+        (valueChange)="onSchedulerJobChanged($event)">
+    </pep-select>
+    <pep-select *ngIf="jobFrequencyType === 'weekly'" [value]="jobDay" [options]="weekDays" [renderTitle]="false"
+        (valueChange)="onWeekDayChanged($event)"></pep-select>
+    <pep-textbox *ngIf="jobFrequencyType" [key]="'publishTime'" [value]="jobPublishTime" [renderTitle]="false" [placeholder]="'HH:mm'"
+        [regex]="timeRegex" [regexError]="'Open_Catalog_MESSAGES.InvalidTimePattern' | translate"
+        (valueChange)="onPublishTimeChanged($event)">
+    </pep-textbox>
+    <pep-button
+        [disabled]="jobFrequencyType !== '' && (jobPublishTime === '' || (jobFrequencyType === 'weekly' && jobDay ===
+        ''))"
+        [value]="'Save' | translate" styleType="strong" sizeType="md" (click)="onSchedulerSaveClicked()">
+    </pep-button>
+</div>
+

@@ -1,0 +1,12 @@
+@use '@pepperi-addons/ngx-lib/src/core/style/abstracts/variables';
+
+.scheduler-job-container {
+    display: flex;    
+    align-items: start;
+    gap: variables.$spacing-lg;
+    padding-inline: variables.$spacing-xs;
+
+    pep-select {
+        width: 200px;
+    }
+}

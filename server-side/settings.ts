@@ -15,6 +15,7 @@ export async function getOpenCatalogSettings(client: Client, request: Request) {
         const service = new MyService(client);
         const OpenCatalogsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogSettings').iter({ page_size: -1 }).toArray();
         const OpenCatalogsHistoryResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogData').iter({ page_size: -1 }).toArray();
+        const OpenCatalogsJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').iter({ page_size: -1 }).toArray();
         let OpenCatalogsHistory = new Array();
         OpenCatalogsResponse.forEach(OpenCatalog => {
             const latestVersions = OpenCatalogsHistoryResponse.filter(x => x.ActivityTypeDefinitionUUID == OpenCatalog.ATDUUID).sort((a, b) => (a.Version < b.Version) ? 1 : ((b.Version < a.Version) ? -1 : 0)).slice(0, 10);;
@@ -26,10 +27,12 @@ export async function getOpenCatalogSettings(client: Client, request: Request) {
             Success: true,
             OpenCatalogs: OpenCatalogsResponse,
             OpenCatalogsHistory: OpenCatalogsHistory,
+            OpenCatalogsJob: OpenCatalogsJobResponse,
             Catalogs: catalogs
         };
     }
     catch (error) {
+        assertIsError(error);        
         return {
             Success: false,
             ErrorMessage: error.message
@@ -50,6 +53,26 @@ export async function getPreviewTransaction(client: Client, request: Request) {
         return {
             Success: true,
             TransactionUUID: transactionUUID
+        };
+    }
+    catch (error) {
+        return {
+            Success: false,
+            ErrorMessage: "The open catalog is on synchronization process."
+        }
+    }
+}
+
+export async function getOpenCatalogJob(client: Client, request: Request) {
+    try {
+        console.log("start getOpenCatalogJob");
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        const atdID = request.body.atdID;       
+        const dataTableResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(atdID).get();
+        return {
+            Success: true,
+            DataTableResponse: dataTableResponse
         };
     }
     catch (error) {
@@ -177,6 +200,7 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
         return { Success: true, OpenCatalog: settingsResponse };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -192,7 +216,7 @@ export async function addNewOpenCatalog(client: Client, request: Request) {
         const atdID = request.query.atdID;
 
         const atdBody = {
-            InternalID: atdID
+            InternalID: atdID           
         };
         const atdResponse = await service.papiClient.post('/meta_data/transactions/types', atdBody);
 
@@ -220,6 +244,7 @@ export async function addNewOpenCatalog(client: Client, request: Request) {
         return { Success: true, OpenCatalog: settingsResponse };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -239,6 +264,7 @@ export async function getOpenCatalogVersionData(client: Client, request: Request
         return { Success: true, OpenCatalogData: dataTableResponse };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -261,6 +287,7 @@ export async function saveOpenCatalogName(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -315,6 +342,7 @@ export async function deleteOpenCatalog(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -346,6 +374,7 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -396,6 +425,7 @@ export async function publishOpenCatalog(client: Client, request: Request) {
         return { Success: true, ExecutionUUID: auditLog.ExecutionUUID, ElasticSearchSubType: elasticSearchSubType, OpenCatalog: responseSettings };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -443,6 +473,7 @@ export async function revokeAccessKey(client: Client, request: Request) {
         };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -450,6 +481,35 @@ export async function revokeAccessKey(client: Client, request: Request) {
     }
 }
 
+
+export async function saveOpenCatalogJob(client: Client, request: Request)  {
+    try {  
+        console.log("start saveOpenCatalogJob");      
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        const settingsBody: any = {
+            Key: request.body.Key,
+            Frequency: request.body.Frequency
+        };
+
+        if (request.body.Day) {
+            settingsBody.Day = request.body.Day;
+        }
+
+        if (request.body.Time) {
+            settingsBody.Time = request.body.Time;
+        }
+        const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(settingsBody);
+        return { Success: true };
+    }
+    catch (error) {
+        assertIsError(error);
+        return {
+            Success: false,
+            ErrorMessage: error.message
+        }
+    }
+}
 //#endregion
 
 //#region private methods
@@ -487,5 +547,11 @@ async function updateAdalTable(client, tableName, tableBody) {
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
+
+function assertIsError(error: unknown): asserts error is Error {   
+    if (!(error instanceof Error)) {
+        throw error
+    }
+}
 
 //#endregion

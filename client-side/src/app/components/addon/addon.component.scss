@@ -1,3 +1,5 @@
+@use '@pepperi-addons/ngx-lib/src/core/style/abstracts/variables';
+
 :host {
     height: inherit;
     display: block;
@@ -44,4 +46,10 @@
 
 .description-width{
     width: 832px;
+}
+
+.scheduled-Job-descr {
+    display: flex;
+    flex-direction: column;
+    gap: variables.$spacing-xl;
 }
