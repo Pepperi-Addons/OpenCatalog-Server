@@ -19,7 +19,7 @@ import { PepMenuItem } from "@pepperi-addons/ngx-lib/menu";
 import { PepDialogActionButton, PepDialogData, PepDialogService } from "@pepperi-addons/ngx-lib/dialog";
 import { AppService } from "../../app.service";
 import { MatDialogRef } from "@angular/material/dialog";
-import { IScheduledJob } from '../scheduler-job/scheduler-job.model';
+import { IScheduledJob, IScheduledJobRequest, JobTypes } from '../scheduler-job/scheduler-job.model';
 
 
 @Component({
@@ -101,7 +101,7 @@ export class AddonComponent implements OnInit {
             }
             this.openCatalogHistory = this.openCatalogHistory ? this.openCatalogsHistory.filter(x => x.ActivityTypeDefinitionUUID == this.openCatalog.ATDUUID) : this.openCatalogHistory;
             this.pluginService.catalogs = result.Catalogs;
-            this.loadOpenCatalogs(this.openCatalogs);
+            this.loadOpenCatalogs(this.openCatalogs);            
         });
     }
 
@@ -596,21 +596,89 @@ export class AddonComponent implements OnInit {
         }
     }
 
-    onSaveCatalogClicked(job: IScheduledJob) {
-        let body: any = {};
-        Object.assign(body, job);
-        body.Key = this.openCatalog.Key;
-       
-        this.appService.postAddonServerAPI('settings', 'saveOpenCatalogJob', body, {})
-            .subscribe((result: any) => {
-                const success = result.Success;
-                if (success == true) {
-                    this.loadOpenCatalogs(this.openCatalogs);
+    onSaveJobClicked(job: IScheduledJob) {
+        this.appService.saveScheduledJob(this.getScheduledJobRequestObject(job)).subscribe((res: any) => {            
+            if (res?.Success) {
+                this.loadOpenCatalogs(this.openCatalogs);
+            }
+            else {
+                this.openInfoDialog('Error', 'Open_Catalog_MESSAGES.SaveScheduledJobFailed', `${res.ErrorMessage}`);
+            }
+        }, error => {
+            this.openInfoDialog('Error', 'Open_Catalog_MESSAGES.SaveScheduledJobFailed', `${error}`)
+        });
+
+    }
+
+    private getCronExpression(job: IScheduledJob) {
+        let day = '*';
+        let hour = '*';
+        let minute = '*';
+
+        if (job.Frequency && job.Time) {
+            const timeArr = job.Time.split(':');
+            hour = timeArr[0];
+            minute = timeArr[1];
+        }
+
+        if (job.Day) {
+            day = this.pluginService.getCronExpressionDay(job.Day);
+        }
+
+        return minute + ' ' + hour + ' * * ' + day;
+    }
+
+    private getJobType(job: IScheduledJob) {
+        if (!job.Frequency) {
+            return JobTypes.Delete;
+        } else {
+            return this.selectedJob ? JobTypes.Update : JobTypes.Create;
+        }
+    }
+
+    private getScheduledJobRequestObject(job: IScheduledJob) {
+        const type = this.getJobType(job);
+        let request: any = {
+            CatalogId: this.openCatalog.Key,
+            JobType: type,
+            Job: job
+        };
+
+        switch (type) {
+            case JobTypes.Create:
+                request.CodeJob = {
+                    Type: 'AddonJob',
+                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    Description: 'Scheduled Publish Open Catalog',
+                    IsScheduled: true,
+                    AddonPath: "settings",
+                    AddonUUID: '00000000-0000-0000-0000-00000ca7a109',
+                    NumberOfTries: 2,
+                    FunctionName: `scheduledPublishOpenCatalog?catalogId=${this.openCatalog.Key}&accessKey=${this.openCatalog.AccessKey}`,
+                    CronExpression: this.getCronExpression(job)
                 }
-                else {
-                    this.openInfoDialog('Error', 'Open_Catalog_MESSAGES.SaveScheduledJobFailed', `${result.ErrorMessage}`)
+
+                break;
+            case JobTypes.Update:
+                request.CodeJob = {
+                    UUID: this.selectedJob.CodeJobId,
+                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    CronExpression: this.getCronExpression(job),
+                    CodeJobIsHidden: false
                 }
-            }); 
+
+                break;
+            case JobTypes.Delete:
+                request.CodeJob = {
+                    UUID: this.selectedJob.CodeJobId,
+                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    CodeJobIsHidden: true                    
+                }
+                break;
+        }
+
+        return request;
+
     }
 
 }

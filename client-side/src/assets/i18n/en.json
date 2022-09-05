@@ -37,6 +37,7 @@
         "AddFailed": "Failed to add Open Catalog",
         "PreviewFailed": "Failed to open Open Catalog Preview",
         "SaveNameFailed": "Failed to save Open Catalog Name",
+        "SaveCodeJobFailed": "Failed to save Code Job Info",
         "SaveScheduledJobFailed": "Failed to save Scheduled Job Info",
         "RevokeFailed": "Revoke new Access Key failed",
         "DeleteFailed": "Delete Open Catalog failed",

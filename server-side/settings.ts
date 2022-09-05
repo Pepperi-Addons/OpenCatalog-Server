@@ -6,6 +6,7 @@ import { Guid } from "guid-typescript";
 import ClientApi from "@pepperi-addons/client-api";
 import { servicesVersion } from 'typescript';
 import { FileStorage } from '@pepperi-addons/papi-sdk';
+import { AddonDataScheme } from '@pepperi-addons/papi-sdk';
 
 //#region public methods for client-side - called from the addon ui
 export async function getOpenCatalogSettings(client: Client, request: Request) {
@@ -32,7 +33,7 @@ export async function getOpenCatalogSettings(client: Client, request: Request) {
         };
     }
     catch (error) {
-        assertIsError(error);        
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -68,7 +69,7 @@ export async function getOpenCatalogJob(client: Client, request: Request) {
         console.log("start getOpenCatalogJob");
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
         const service = new MyService(client);
-        const atdID = request.body.atdID;       
+        const atdID = request.body.atdID;
         const dataTableResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(atdID).get();
         return {
             Success: true,
@@ -216,7 +217,7 @@ export async function addNewOpenCatalog(client: Client, request: Request) {
         const atdID = request.query.atdID;
 
         const atdBody = {
-            InternalID: atdID           
+            InternalID: atdID
         };
         const atdResponse = await service.papiClient.post('/meta_data/transactions/types', atdBody);
 
@@ -382,6 +383,26 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
     }
 };
 
+
+export async function scheduledPublishOpenCatalog(client: Client, request: Request) {
+    try {
+        const catalogId = request.query.catalogId;
+        const accessKey = request.query.accessKey;
+        if (catalogId && accessKey) {
+            if (!request.body) {
+                request.body = {};
+            }
+            request.body.atdID = catalogId;
+            request.body.atdSecret = accessKey;
+            request.body.comment = 'Scheduled Job';
+            const response = await publishOpenCatalog(client, request);
+        }
+    }
+    catch (err) {
+        //TODO - handle error
+    }
+}
+
 export async function publishOpenCatalog(client: Client, request: Request) {
     try {
         console.log("start publishOpenCatalog");
@@ -481,16 +502,22 @@ export async function revokeAccessKey(client: Client, request: Request) {
     }
 }
 
-
-export async function saveOpenCatalogJob(client: Client, request: Request)  {
-    try {  
-        console.log("start saveOpenCatalogJob");      
+export async function saveOpenCatalogJob(client: Client, request: Request) {
+    try {
+        console.log("start saveOpenCatalogJob");
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
         const service = new MyService(client);
         const settingsBody: any = {
-            Key: request.body.Key,
-            Frequency: request.body.Frequency
+            Key: request.body.Key            
         };
+
+        if (request.body.Frequency) {
+            settingsBody.Frequency = request.body.Frequency;
+        }
+
+        if (request.body.CodeJobId) {
+            settingsBody.CodeJobId = request.body.CodeJobId;
+        }
 
         if (request.body.Day) {
             settingsBody.Day = request.body.Day;
@@ -499,6 +526,11 @@ export async function saveOpenCatalogJob(client: Client, request: Request)  {
         if (request.body.Time) {
             settingsBody.Time = request.body.Time;
         }
+
+        if (request.body.Hidden) {
+            settingsBody.Hidden = request.body.Hidden;
+        }
+
         const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(settingsBody);
         return { Success: true };
     }
@@ -510,6 +542,7 @@ export async function saveOpenCatalogJob(client: Client, request: Request)  {
         }
     }
 }
+
 //#endregion
 
 //#region private methods
@@ -548,7 +581,7 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
 
-function assertIsError(error: unknown): asserts error is Error {   
+function assertIsError(error: unknown): asserts error is Error {
     if (!(error instanceof Error)) {
         throw error
     }

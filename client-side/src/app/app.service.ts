@@ -1,11 +1,16 @@
 import { Injectable } from "@angular/core";
+import { HttpHeaders } from "@angular/common/http";
 import { PepAddonService, PepLoaderService, PepHttpService } from "@pepperi-addons/ngx-lib";
 import {
   PepDialogService,
   PepDialogActionButton,
 } from "@pepperi-addons/ngx-lib/dialog";
 import { PepDialogData } from "@pepperi-addons/ngx-lib/dialog";
- 
+import { IScheduledJobRequest, JobTypes } from './components/scheduler-job/scheduler-job.model';
+import { catchError, switchMap } from "rxjs/operators";
+import { of, throwError } from "rxjs";
+
+
 @Injectable({
   providedIn: "root",
 })
@@ -20,7 +25,7 @@ export class AppService {
   ) {
     //sessionStorage.setItem("idp_token", this.idpToken);
   }
- 
+
   getAddonServerAPI(
     fileName: string,
     functionName: string,
@@ -33,7 +38,7 @@ export class AppService {
       options
     );
   }
- 
+
   postAddonServerAPI(
     fileName: string,
     functionName: string,
@@ -48,14 +53,14 @@ export class AppService {
       options
     );
   }
- 
+
   openDialog(title: string, content: string, callback?: any) {
     const actionButton: PepDialogActionButton = {
       title: "OK",
       className: "",
       callback: callback,
     };
- 
+
     const dialogData = new PepDialogData({
       title: title,
       content: content,
@@ -71,14 +76,14 @@ export class AppService {
         }
       });
   }
- 
+
   getFromAPI(apiObject, successFunc, errorFunc) {
     //this.addonService.setShowLoading(true);
     const endpoint = apiObject.ListType === "all" ? "addons" : "updates";
     // // --- Work live in sandbox upload api.js file to plugin folder
     // const url = `/addons/api/${apiObject.UUID}/api/${endpoint}`;
     // this.addonService.httpGetApiCall(url, successFunc, errorFunc);
- 
+
     //--- Work localhost
     const url = `http://localhost:4500/api/${endpoint}`;
     // this.httpService.getHttpCall(url, searchObject, { 'headers': {'Authorization': 'Bearer ' + this.addonService.getUserToken() }}).subscribe(
@@ -86,21 +91,57 @@ export class AppService {
     // );
     this.httpService.getHttpCall("");
   }
- 
+
+  saveScheduledJob(req: any) {
+    const headers = new HttpHeaders({ 'X-Pepperi-OwnerID': '00000000-0000-0000-0000-00000ca7a109' });
+
+    return this.postPapiCall('/code_jobs', req.CodeJob, { headers: headers }).pipe(
+      switchMap(res => {
+        if (res) {
+          let jobRequest: any = {};
+          switch (req.JobType) {
+            case JobTypes.Create:
+              Object.assign(jobRequest, req.Job);
+              jobRequest.Key = req.CatalogId;
+              jobRequest.CodeJobId = res.UUID;
+              break;            
+            case JobTypes.Update:
+              Object.assign(jobRequest, req.Job);
+              jobRequest.Key = req.CatalogId;
+              jobRequest.Hidden = false;
+              break;            
+            case JobTypes.Delete:
+              jobRequest.Key = req.CatalogId;
+              jobRequest.Hidden = true;
+              break;            
+            default:
+              return throwError(`Error while saving scheduled job`);
+          }
+          return this.postAddonServerAPI('settings', 'saveOpenCatalogJob', jobRequest, {});
+        } else {
+          return throwError(`Error while saving code job`);
+        }
+      }),
+      catchError(error => {
+        return throwError(`Error while saving code job: ${error}`);
+      })
+    )
+  }
+
   postToAPI(endpoint) {
     const url = `http://localhost:4500/api/${endpoint}`;
     this.post(url);
   }
- 
+
   post(url: string) {
-    this.httpService.postHttpCall(url, null).subscribe((result) => {});
+    this.httpService.postHttpCall(url, null).subscribe((result) => { });
   }
- 
+
   getPapiCall(url: string) {
     return this.httpService.getPapiApiCall(url);
   }
- 
-  postPapiCall(url: string, body: any) {
-    return this.httpService.postPapiApiCall(url, body);
+
+  postPapiCall(url: string, body: any, headers: any = null) {
+    return this.httpService.postPapiApiCall(url, body, headers);
   }
 }

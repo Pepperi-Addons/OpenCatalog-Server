@@ -51,4 +51,24 @@ export class AddonService {
         this.papiBaseURL = this.parsedToken["pepperi.baseurl"]
     }
 
+    getCronExpressionDay(day: string) {
+        switch (day) {
+            case 'sunday':
+                return '1';
+            case 'monday':
+                return '2';
+            case 'tuesday':
+                return '3';
+            case 'wednesday':
+                return '4';
+            case 'thursday':
+                return '5';
+            case 'friday':
+                return '6';
+            case 'saterday':
+                return '7';
+            default: '*';
+        }
+    }
+
 }
