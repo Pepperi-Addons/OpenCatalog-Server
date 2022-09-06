@@ -383,57 +383,19 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
     }
 };
 
-export async function ResetOpenCatalog(client: Client, request: Request) {
-    try {
-
-
-        const service = new MyService(client);
-        const headers = {
-            "X-Pepperi-OwnerID": "00000000-0000-0000-0000-00000ca7a109",
-            "X-Pepperi-SecretKey": client.AddonSecretKey
-        }
-
-        // create schemas on adal - 
-        // OpenCatalogSettings for list of open catalogs
-        // OpenCatalogSecret for each open catalog his published version and secret key
-        // OpenCatalogData for document each publish on open catalogs
-
-        const bodyScheduleJob: AddonDataScheme = {
-            Name: 'OpenCatalogScheduleJob',
-            Type: 'meta_data'
-        }
-
-        const responseScheduleJob1 = await service.papiClient.post('/addons/data/schemes/OpenCatalogScheduleJob/purge', null, headers);
-        const responseScheduleJob2 = await service.papiClient.post('/addons/data/schemes', bodyScheduleJob, headers);
-        return {
-            Success: true
-        }
-    }
-    catch (err) {
-        //TODO - handle error
-        assertIsError(err);
-        return {
-            Success: false,
-            ErrorMessage: err.message
-        }
-    }
-}
-
 export async function scheduledPublishOpenCatalog(client: Client, request: Request) {
     try {
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
-        const service = new MyService(client);
-        // const atdID = request.body.atdID;
-        //const atdUUID = request.body.atdUUID;
+        const service = new MyService(client);       
         const codeJobId = request.query.AsyncTaskExecution_codejob_uuid;
         const codeJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(codeJobId).get();
         
-        if (codeJobResponse && codeJobResponse.catalogId && codeJobResponse.accessKey) {
+        if (codeJobResponse && codeJobResponse.CatalogId && codeJobResponse.AccessKey) {
             if (!request.body) {
                 request.body = {};
             }
-            request.body.atdID = codeJobResponse.catalogId;
-            request.body.atdSecret = codeJobResponse.accessKey;
+            request.body.atdID = codeJobResponse.CatalogId;
+            request.body.atdSecret = codeJobResponse.AccessKey;
             request.body.comment = 'Scheduled Job';
             const response = await publishOpenCatalog(client, request);
         }

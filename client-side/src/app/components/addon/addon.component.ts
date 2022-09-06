@@ -101,13 +101,7 @@ export class AddonComponent implements OnInit {
             }
             this.openCatalogHistory = this.openCatalogHistory ? this.openCatalogsHistory.filter(x => x.ActivityTypeDefinitionUUID == this.openCatalog.ATDUUID) : this.openCatalogHistory;
             this.pluginService.catalogs = result.Catalogs;
-            this.loadOpenCatalogs(this.openCatalogs);   
-            
-            //TEMp            
-            /*
-            this.appService.getAddonServerAPI('settings', 'ResetOpenCatalog', {}).subscribe((result: any) => {
-                console.log('ResetOpenCatalog', result)
-            }); */
+            this.loadOpenCatalogs(this.openCatalogs);                           
         });
     }
 
@@ -631,8 +625,7 @@ export class AddonComponent implements OnInit {
             day = this.pluginService.getCronExpressionDay(job.Day);
         }
 
-        //return minute + ' ' + hour + ' * * ' + day;
-        return '15 * * * *'; //TEMP
+        return minute + ' ' + hour + ' * * ' + day;        
     }
 
     private getJobType(job: IScheduledJob) {

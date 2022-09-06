@@ -98,14 +98,10 @@ export class AppService {
     return this.postPapiCall('/code_jobs', req.CodeJob, { headers: headers }).pipe(
       switchMap(res => {
         if (res?.UUID) {
-          let jobRequest: any = {};
-          console.log('request', req);
-          console.log('code job response', res);
+          let jobRequest: any = {};          
           switch (req.JobType) {
             case JobTypes.Create:
-              Object.assign(jobRequest, req.Job);
-              //              jobRequest.Key = req.CatalogId;
-              //            jobRequest.CodeJobId = res.UUID;
+              Object.assign(jobRequest, req.Job);             
               jobRequest.Key = res.UUID;
               jobRequest.AccessKey = req.AccessKey;
               jobRequest.CatalogId = req.CatalogId;
@@ -116,8 +112,7 @@ export class AppService {
               jobRequest.AccessKey = req.AccessKey;
               jobRequest.Hidden = false;
               break;
-            case JobTypes.Delete:
-              //jobRequest.Key = req.CatalogId;
+            case JobTypes.Delete:              
               jobRequest.Key = res.UUID;
               jobRequest.Hidden = true;
               break;
