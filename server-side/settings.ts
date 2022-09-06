@@ -383,17 +383,57 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
     }
 };
 
+export async function ResetOpenCatalog(client: Client, request: Request) {
+    try {
+
+
+        const service = new MyService(client);
+        const headers = {
+            "X-Pepperi-OwnerID": "00000000-0000-0000-0000-00000ca7a109",
+            "X-Pepperi-SecretKey": client.AddonSecretKey
+        }
+
+        // create schemas on adal - 
+        // OpenCatalogSettings for list of open catalogs
+        // OpenCatalogSecret for each open catalog his published version and secret key
+        // OpenCatalogData for document each publish on open catalogs
+
+        const bodyScheduleJob: AddonDataScheme = {
+            Name: 'OpenCatalogScheduleJob',
+            Type: 'meta_data'
+        }
+
+        const responseScheduleJob1 = await service.papiClient.post('/addons/data/schemes/OpenCatalogScheduleJob/purge', null, headers);
+        const responseScheduleJob2 = await service.papiClient.post('/addons/data/schemes', bodyScheduleJob, headers);
+        return {
+            Success: true
+        }
+    }
+    catch (err) {
+        //TODO - handle error
+        assertIsError(err);
+        return {
+            Success: false,
+            ErrorMessage: err.message
+        }
+    }
+}
 
 export async function scheduledPublishOpenCatalog(client: Client, request: Request) {
     try {
-        const catalogId = request.query.catalogId;
-        const accessKey = request.query.accessKey;
-        if (catalogId && accessKey) {
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        // const atdID = request.body.atdID;
+        //const atdUUID = request.body.atdUUID;
+        const codeJobId = request.query.AsyncTaskExecution_codejob_uuid;
+        const codeJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(codeJobId).get();
+        
+        if (codeJobResponse && codeJobResponse.catalogId && codeJobResponse.accessKey) {
             if (!request.body) {
                 request.body = {};
             }
-            request.body.atdID = catalogId;
-            request.body.atdSecret = accessKey;
+            request.body.atdID = codeJobResponse.catalogId;
+            request.body.atdSecret = codeJobResponse.accessKey;
             request.body.comment = 'Scheduled Job';
             const response = await publishOpenCatalog(client, request);
         }
@@ -507,31 +547,11 @@ export async function saveOpenCatalogJob(client: Client, request: Request) {
         console.log("start saveOpenCatalogJob");
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
         const service = new MyService(client);
-        const settingsBody: any = {
-            Key: request.body.Key            
-        };
+        let jobBody: any = {};
 
-        if (request.body.Frequency) {
-            settingsBody.Frequency = request.body.Frequency;
-        }
-
-        if (request.body.CodeJobId) {
-            settingsBody.CodeJobId = request.body.CodeJobId;
-        }
-
-        if (request.body.Day) {
-            settingsBody.Day = request.body.Day;
-        }
-
-        if (request.body.Time) {
-            settingsBody.Time = request.body.Time;
-        }
-
-        if (request.body.Hidden) {
-            settingsBody.Hidden = request.body.Hidden;
-        }
-
-        const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(settingsBody);
+        Object.assign(jobBody, request.body);
+        
+        const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(jobBody);
         return { Success: true };
     }
     catch (error) {

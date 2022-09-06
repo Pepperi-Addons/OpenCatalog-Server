@@ -101,7 +101,13 @@ export class AddonComponent implements OnInit {
             }
             this.openCatalogHistory = this.openCatalogHistory ? this.openCatalogsHistory.filter(x => x.ActivityTypeDefinitionUUID == this.openCatalog.ATDUUID) : this.openCatalogHistory;
             this.pluginService.catalogs = result.Catalogs;
-            this.loadOpenCatalogs(this.openCatalogs);            
+            this.loadOpenCatalogs(this.openCatalogs);   
+            
+            //TEMp            
+            /*
+            this.appService.getAddonServerAPI('settings', 'ResetOpenCatalog', {}).subscribe((result: any) => {
+                console.log('ResetOpenCatalog', result)
+            }); */
         });
     }
 
@@ -295,7 +301,7 @@ export class AddonComponent implements OnInit {
         var openCatalogID = typeData.Fields[0].AdditionalValue;
         this.openCatalog = this.openCatalogs.find(x => x.Key == openCatalogID);
         if (this.openCatalogsJob?.length) {
-            this.selectedJob = this.openCatalogsJob.find(x => x.Key == openCatalogID);
+            this.selectedJob = this.openCatalogsJob.find(x => x.CatalogId == openCatalogID);
         }
         if (action.key == 'edit') {
             setTimeout(() => {
@@ -625,7 +631,8 @@ export class AddonComponent implements OnInit {
             day = this.pluginService.getCronExpressionDay(job.Day);
         }
 
-        return minute + ' ' + hour + ' * * ' + day;
+        //return minute + ' ' + hour + ' * * ' + day;
+        return '15 * * * *'; //TEMP
     }
 
     private getJobType(job: IScheduledJob) {
@@ -640,6 +647,7 @@ export class AddonComponent implements OnInit {
         const type = this.getJobType(job);
         let request: any = {
             CatalogId: this.openCatalog.Key,
+            AccessKey: this.openCatalog.AccessKey,
             JobType: type,
             Job: job
         };
@@ -648,21 +656,21 @@ export class AddonComponent implements OnInit {
             case JobTypes.Create:
                 request.CodeJob = {
                     Type: 'AddonJob',
-                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
                     Description: 'Scheduled Publish Open Catalog',
                     IsScheduled: true,
                     AddonPath: "settings",
                     AddonUUID: '00000000-0000-0000-0000-00000ca7a109',
                     NumberOfTries: 2,
-                    FunctionName: `scheduledPublishOpenCatalog?catalogId=${this.openCatalog.Key}&accessKey=${this.openCatalog.AccessKey}`,
+                    FunctionName: `scheduledPublishOpenCatalog`,
                     CronExpression: this.getCronExpression(job)
                 }
 
                 break;
             case JobTypes.Update:
                 request.CodeJob = {
-                    UUID: this.selectedJob.CodeJobId,
-                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    UUID: this.selectedJob.Key,
+                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
                     CronExpression: this.getCronExpression(job),
                     CodeJobIsHidden: false
                 }
@@ -670,8 +678,8 @@ export class AddonComponent implements OnInit {
                 break;
             case JobTypes.Delete:
                 request.CodeJob = {
-                    UUID: this.selectedJob.CodeJobId,
-                    CodeJobName: 'job_' + this.openCatalog.Key,
+                    UUID: this.selectedJob.Key,
+                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
                     CodeJobIsHidden: true                    
                 }
                 break;

@@ -97,23 +97,30 @@ export class AppService {
 
     return this.postPapiCall('/code_jobs', req.CodeJob, { headers: headers }).pipe(
       switchMap(res => {
-        if (res) {
+        if (res?.UUID) {
           let jobRequest: any = {};
+          console.log('request', req);
+          console.log('code job response', res);
           switch (req.JobType) {
             case JobTypes.Create:
               Object.assign(jobRequest, req.Job);
-              jobRequest.Key = req.CatalogId;
-              jobRequest.CodeJobId = res.UUID;
-              break;            
+              //              jobRequest.Key = req.CatalogId;
+              //            jobRequest.CodeJobId = res.UUID;
+              jobRequest.Key = res.UUID;
+              jobRequest.AccessKey = req.AccessKey;
+              jobRequest.CatalogId = req.CatalogId;
+              break;
             case JobTypes.Update:
               Object.assign(jobRequest, req.Job);
-              jobRequest.Key = req.CatalogId;
+              jobRequest.Key = res.UUID;
+              jobRequest.AccessKey = req.AccessKey;
               jobRequest.Hidden = false;
-              break;            
+              break;
             case JobTypes.Delete:
-              jobRequest.Key = req.CatalogId;
+              //jobRequest.Key = req.CatalogId;
+              jobRequest.Key = res.UUID;
               jobRequest.Hidden = true;
-              break;            
+              break;
             default:
               return throwError(`Error while saving scheduled job`);
           }

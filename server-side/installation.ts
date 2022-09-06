@@ -41,25 +41,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         };
         const bodyScheduleJob: AddonDataScheme = {
             Name: 'OpenCatalogScheduleJob',
-            Type: 'meta_data',
-            Fields: {
-                Key: {
-                    Type: 'String'
-                }, 
-                CodeJobId: {
-                    Type: 'String'
-                }, 
-                Frequency: {
-                    Type: 'String'
-                }, 
-                Day: {
-                    Type: 'String'
-                }, 
-                Time: {
-                    Type: 'String'
-                }                
-            }
-                    
+            Type: 'meta_data'                    
         }
 
         const responseSettingsTable = await service.papiClient.post('/addons/data/schemes', bodySettingsTable, headers);
