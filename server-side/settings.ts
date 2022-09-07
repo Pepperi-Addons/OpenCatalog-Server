@@ -386,10 +386,10 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
 export async function scheduledPublishOpenCatalog(client: Client, request: Request) {
     try {
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
-        const service = new MyService(client);       
+        const service = new MyService(client);
         const codeJobId = request.query.AsyncTaskExecution_codejob_uuid;
         const codeJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(codeJobId).get();
-        
+
         if (codeJobResponse && codeJobResponse.CatalogId && codeJobResponse.AccessKey) {
             if (!request.body) {
                 request.body = {};
@@ -398,10 +398,10 @@ export async function scheduledPublishOpenCatalog(client: Client, request: Reque
             request.body.atdSecret = codeJobResponse.AccessKey;
             request.body.comment = 'Scheduled Job';
             const response = await publishOpenCatalog(client, request);
-        }
+        }        
     }
     catch (err) {
-        //TODO - handle error
+        //TODO - handle error        
     }
 }
 
@@ -443,11 +443,15 @@ export async function publishOpenCatalog(client: Client, request: Request) {
             elasticSearchSubType: elasticSearchSubType,
             atdID: atdID,
             atdSecret: atdSecret
-        }
+        }        
+
+        await monitorPublish(client, request.body.atdID, 'SUCCESS');
+
         const auditLog = await service.papiClient.post(`/addons/api/async/${client.AddonUUID}/publish/publishNewVersion`, publishBody);
         return { Success: true, ExecutionUUID: auditLog.ExecutionUUID, ElasticSearchSubType: elasticSearchSubType, OpenCatalog: responseSettings };
     }
-    catch (error) {
+    catch (error) {        
+        await monitorPublish(client, request.body.atdID, 'ERROR');
         assertIsError(error);
         return {
             Success: false,
@@ -512,7 +516,7 @@ export async function saveOpenCatalogJob(client: Client, request: Request) {
         let jobBody: any = {};
 
         Object.assign(jobBody, request.body);
-        
+
         const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(jobBody);
         return { Success: true };
     }
@@ -567,6 +571,34 @@ function assertIsError(error: unknown): asserts error is Error {
     if (!(error instanceof Error)) {
         throw error
     }
+}
+
+
+async function monitorPublish(client: Client, catalogId: string, status: string) {
+    try {
+        let headers = {
+            "X-Pepperi-OwnerID": '00000000-0000-0000-0000-00000ca7a109',
+            "X-Pepperi-SecretKey": client.AddonSecretKey
+        }
+    
+        const service = new MyService(client);
+    
+        let body = {
+            Name: `catalog_${catalogId}`,
+            Description: "Open Catalog Publish",
+            Status: status,
+            Message: getNotificationMessageText(status) + catalogId
+        }
+    
+        const Url: string = '/system_Health/notifications';    
+        const res = await service.papiClient.post(Url, body, headers);
+    } catch (err) {
+
+    }    
+}
+
+function getNotificationMessageText(status: string) {
+    return status ? 'Successfuly published catalog id - ' : 'Failed to publish catalog id - ';    
 }
 
 //#endregion

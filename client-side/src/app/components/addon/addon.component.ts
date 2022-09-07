@@ -101,7 +101,7 @@ export class AddonComponent implements OnInit {
             }
             this.openCatalogHistory = this.openCatalogHistory ? this.openCatalogsHistory.filter(x => x.ActivityTypeDefinitionUUID == this.openCatalog.ATDUUID) : this.openCatalogHistory;
             this.pluginService.catalogs = result.Catalogs;
-            this.loadOpenCatalogs(this.openCatalogs);                           
+            this.loadOpenCatalogs(this.openCatalogs);                                               
         });
     }
 
@@ -168,8 +168,8 @@ export class AddonComponent implements OnInit {
             case 'ATDName':
                 dataRowField.ColumnWidth = 25;
                 dataRowField.Title = 'Transaction Type';
-                dataRowField.FieldType = FIELD_TYPE.InternalLink;
-                dataRowField.Value = "settings/354c5123-a7d0-4f52-8fce-3cf1ebc95314/editor?view=sa_transactiontypes";//`settings/04de9428-8658-4bf7-8171-b59f6327bbf1/transaction_types/${openCatalog["Key"]}/general`;
+                dataRowField.FieldType = FIELD_TYPE.InternalLink;               
+                dataRowField.Value = `settings/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions/types/${openCatalog["Key"]}/general`;
                 break;
             case 'LastPublishDate':
                 dataRowField.ColumnWidth = 25;
