@@ -397,11 +397,11 @@ export async function scheduledPublishOpenCatalog(client: Client, request: Reque
             request.body.atdID = codeJobResponse.CatalogId;
             request.body.atdSecret = codeJobResponse.AccessKey;
             request.body.comment = 'Scheduled Job';
-            const response = await publishOpenCatalog(client, request);
+            await publishOpenCatalog(client, request);            
         }        
     }
     catch (err) {
-        //TODO - handle error        
+        await monitorPublish(client, request.body.atdID, 'ERROR');     
     }
 }
 
@@ -444,7 +444,7 @@ export async function publishOpenCatalog(client: Client, request: Request) {
             atdID: atdID,
             atdSecret: atdSecret
         }        
-
+        
         await monitorPublish(client, request.body.atdID, 'SUCCESS');
 
         const auditLog = await service.papiClient.post(`/addons/api/async/${client.AddonUUID}/publish/publishNewVersion`, publishBody);
@@ -584,21 +584,21 @@ async function monitorPublish(client: Client, catalogId: string, status: string)
         const service = new MyService(client);
     
         let body = {
-            Name: `catalog_${catalogId}`,
+            Name: `catalog_${catalogId}_${new Date().getTime()}`,
             Description: "Open Catalog Publish",
             Status: status,
             Message: getNotificationMessageText(status) + catalogId
         }
     
         const Url: string = '/system_Health/notifications';    
-        const res = await service.papiClient.post(Url, body, headers);
+        await service.papiClient.post(Url, body, headers);        
     } catch (err) {
 
     }    
 }
 
 function getNotificationMessageText(status: string) {
-    return status ? 'Successfuly published catalog id - ' : 'Failed to publish catalog id - ';    
+    return status === 'SUCCESS' ? 'Successfuly published Catalog Id - ' : 'Failed to publish Catalog Id - ';    
 }
 
 //#endregion
