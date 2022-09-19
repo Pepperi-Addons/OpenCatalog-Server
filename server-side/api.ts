@@ -224,15 +224,21 @@ export async function filters(client: Client, request: Request) {
 };
 
 export async function configurations(client: Client, request: Request) {
-    // https://papi.pepperi.com/v1.0/open_catalog/configurations
-    const service = new MyService(client);
-    client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
-    const subType = jwtDecode(client.OAuthAccessToken)['pepperi.addonkey'];
-    let responseADAL = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogData').key(subType).get();
-    const configurations = {
-        "ConfigurationsURL": responseADAL["ConfigurationsURL"]
-    };
-    return configurations;
+    try {
+        // https://papi.pepperi.com/v1.0/open_catalog/configurations
+        const service = new MyService(client);
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const subType = jwtDecode(client.OAuthAccessToken)['pepperi.addonkey'];
+        let responseADAL = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogData').key(subType).get();
+        const configurations = {
+            "ConfigurationsURL": responseADAL["ConfigurationsURL"]
+        };
+        return configurations;
+    } catch (error) {
+        console.log(`Caught error in api/configurations: ${error}`);
+        return null;
+    }
+
 };
 
 //#endregion
