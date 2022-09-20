@@ -237,7 +237,7 @@ export async function configurations(client: Client, request: Request) {
     } catch (error) {
         console.log(`Caught error in api/configurations: ${error}`);
         return null;
-    }
+    } 
 
 };
 
