@@ -226,10 +226,13 @@ export async function filters(client: Client, request: Request) {
 export async function configurations(client: Client, request: Request) {
     try {
         // https://papi.pepperi.com/v1.0/open_catalog/configurations
+        console.log("In Configurations api function");
         const service = new MyService(client);
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
         const subType = jwtDecode(client.OAuthAccessToken)['pepperi.addonkey'];
+        console.log("Before calling ADAL");
         let responseADAL = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogData').key(subType).get();
+        console.log("After calling ADAL");
         const configurations = {
             "ConfigurationsURL": responseADAL["ConfigurationsURL"]
         };
