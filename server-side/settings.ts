@@ -65,13 +65,16 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
         console.log("start createNewOpenCatalog");
         client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
         const service = new MyService(client);
-        const catalogID = request.body.catalogID;
-        const catalogName = request.body.catalogName;
+        const catalogID = request.body.catalogID;//'44690';
+        const catalogName =request.body.catalogName;//'KOSHER';
         let atdID;
 
         // validate number of open catalogs
         const openCatalogsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogSettings').iter().toArray();
+
+        console.log("after OpenCatalogSettings");
         if (openCatalogsResponse.length >= 5) {
+            console.log("Open Catalogs limit");
             return {
                 Success: false,
                 ErrorMessage: "You've reached the Open Catalogs limit. Please contact support for assistance."
@@ -80,8 +83,11 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
 
         // create new atd
         const profiles = await service.papiClient.profiles.find({ where: "Name in ('Rep','Buyer','Admin')" });
+
+        console.log("after profiles");
         const installedAddon = await service.papiClient.addons.installedAddons.addonUUID(client.AddonUUID).get();
         const baseAddonURL = installedAddon['PublicBaseURL'];
+        console.log("baseAddonURL: " + baseAddonURL);
         const newAtdBody = {
             URL: `${baseAddonURL}template.json`,//"https://cdn.pepperi.com/1110703/CustomizationFile/4a315cde-adba-4647-9a1f-89379294fbf3/opencatalogtemplete.json",
             References: {
@@ -135,30 +141,64 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
                 ]
             }
         };
+
+        console.log("newAtdBody: " + JSON.stringify(newAtdBody));
+
         const newAtdResponse = await service.papiClient.post('/addons/api/async/e9029d7f-af32-4b0e-a513-8d9ced6f8186/api/import_type_definition?type=transactions', newAtdBody);
-        const auditLogUUID = newAtdResponse.ExecutionUUID;
-        let statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
-        while (statusResponse == undefined || statusResponse.Status.Name == 'New' || statusResponse.Status.Name == 'InProgress') {
-            await sleep(1000);
-            statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
-        }
-        if (statusResponse.Status.Name == 'Success') {
-            atdID = JSON.parse(statusResponse.AuditInfo.ResultObject).InternalID;
-        }
-        else {
-            throw new Error(statusResponse.AuditInfo.ErrorMessage);
+
+        console.log("after import_type_definition");
+        let updateAtdNameResponse: any;
+
+        try{
+            const auditLogUUID = newAtdResponse.ExecutionUUID;
+
+            console.log("auditLogUUID: " + newAtdResponse.ExecutionUUID);
+
+            let statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
+
+            console.log("statusResponse.Status.Name: " + statusResponse.Status.Name);
+
+            while (statusResponse == undefined || statusResponse.Status.Name == 'New' || statusResponse.Status.Name == 'InProgress' || statusResponse.Status.Name == 'Started') {
+                await sleep(1000);
+                statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
+            }
+            if (statusResponse.Status.Name == 'Success') {
+                console.log("after response from audit_logs");
+                atdID = JSON.parse(statusResponse.AuditInfo.ResultObject).InternalID;
+            }
+            else {
+                console.log("failed response from audit_logs");
+                throw new Error(statusResponse.AuditInfo.ErrorMessage);
+            }
+
+            const updateAtdNameBody = {
+                InternalID: atdID,
+                ExternalID: `Open Catalog ${atdID}`,
+                Description: `Open Catalog Synchronization To Elastic`
+            };
+
+            //const updateAtdNameResponse = await service.papiClient.post('/meta_data/transactions/types', updateAtdNameBody);
+            updateAtdNameResponse = await service.papiClient.post('/meta_data/transactions/types', updateAtdNameBody);
+            console.log("after transactions types");
+
+        }   
+        catch(error){
+            console.log(error);
         }
 
-        const updateAtdNameBody = {
-            InternalID: atdID,
-            ExternalID: `Open Catalog ${atdID}`,
-            Description: `Open Catalog Synchronization To Elastic`
-        };
-
-        const updateAtdNameResponse = await service.papiClient.post('/meta_data/transactions/types', updateAtdNameBody);
-
+        
         // save new atd settings on adal
-        const accessKey = await createAccessKey(client, service, updateAtdNameResponse.InternalID);
+        let accessKey : any;
+        try{
+            //const accessKey = await createAccessKey(client, service, updateAtdNameResponse.InternalID);
+             accessKey = await createAccessKey(client, service, updateAtdNameResponse.InternalID);
+        }
+        catch(error){
+            console.log("failed createAccessKey");
+        }
+
+        console.log("after createAccessKey");
+
         const settingsBody = {
             Key: updateAtdNameResponse.InternalID.toString(),
             OpenCatalogName: updateAtdNameResponse.ExternalID,
@@ -174,9 +214,13 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
             LastPublishDate: (new Date(Date.now())).toISOString()
         };
         const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogSettings').upsert(settingsBody);
+
+        console.log("after upsert OpenCatalogSettings");
+
         return { Success: true, OpenCatalog: settingsResponse };
     }
     catch (error) {
+        console.log(error);
         return {
             Success: false,
             ErrorMessage: error.message
