@@ -162,7 +162,7 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
         const newAtdResponse = await service.papiClient.post('/addons/api/async/e9029d7f-af32-4b0e-a513-8d9ced6f8186/api/import_type_definition?type=transactions', newAtdBody);
         const auditLogUUID = newAtdResponse.ExecutionUUID;
         let statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
-        while (statusResponse == undefined || statusResponse.Status.Name == 'New' || statusResponse.Status.Name == 'InProgress') {
+        while (statusResponse == undefined || statusResponse.Status.Name == 'New' || statusResponse.Status.Name == 'InProgress' || statusResponse.Status.Name == 'Started') {
             await sleep(1000);
             statusResponse = await service.papiClient.get('/audit_logs/' + auditLogUUID);
         }
