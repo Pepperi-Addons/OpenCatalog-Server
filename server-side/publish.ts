@@ -37,6 +37,7 @@ export async function publishNewVersion(client: Client, request: Request) {
         return;
     }
     catch (error) {
+        assertIsError(error); 
         let status = `Failed - ${error.message}`;
         if (error.message.includes('Stopped')) {
             status = error.message;
@@ -106,6 +107,7 @@ export async function populateNewVersion(client: Client, request: Request) {
         }
     }
     catch (error) {
+        assertIsError(error); 
         let status = `Failed - ${error.message}`;
         if (error.message.includes('Stopped')) {
             status = error.message;
@@ -742,6 +744,12 @@ function getExpirationDateTime() {
     let expirationDateTime = new Date(Date.now());
     expirationDateTime.setMonth(expirationDateTime.getMonth() + 1);
     return expirationDateTime.toISOString();
+}
+
+function assertIsError(error: unknown): asserts error is Error {   
+    if (!(error instanceof Error)) {
+        throw error
+    }
 }
 
 //#endregion

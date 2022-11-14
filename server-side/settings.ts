@@ -6,6 +6,7 @@ import { Guid } from "guid-typescript";
 import ClientApi from "@pepperi-addons/client-api";
 import { servicesVersion } from 'typescript';
 import { FileStorage } from '@pepperi-addons/papi-sdk';
+import { AddonDataScheme } from '@pepperi-addons/papi-sdk';
 
 //#region public methods for client-side - called from the addon ui
 export async function getOpenCatalogSettings(client: Client, request: Request) {
@@ -15,6 +16,7 @@ export async function getOpenCatalogSettings(client: Client, request: Request) {
         const service = new MyService(client);
         const OpenCatalogsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogSettings').iter({ page_size: -1 }).toArray();
         const OpenCatalogsHistoryResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogData').iter({ page_size: -1 }).toArray();
+        const OpenCatalogsJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').iter({ page_size: -1 }).toArray();
         let OpenCatalogsHistory = new Array();
         OpenCatalogsResponse.forEach(OpenCatalog => {
             const latestVersions = OpenCatalogsHistoryResponse.filter(x => x.ActivityTypeDefinitionUUID == OpenCatalog.ATDUUID).sort((a, b) => (a.Version < b.Version) ? 1 : ((b.Version < a.Version) ? -1 : 0)).slice(0, 10);;
@@ -26,10 +28,12 @@ export async function getOpenCatalogSettings(client: Client, request: Request) {
             Success: true,
             OpenCatalogs: OpenCatalogsResponse,
             OpenCatalogsHistory: OpenCatalogsHistory,
+            OpenCatalogsJob: OpenCatalogsJobResponse,
             Catalogs: catalogs
         };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -50,6 +54,26 @@ export async function getPreviewTransaction(client: Client, request: Request) {
         return {
             Success: true,
             TransactionUUID: transactionUUID
+        };
+    }
+    catch (error) {
+        return {
+            Success: false,
+            ErrorMessage: "The open catalog is on synchronization process."
+        }
+    }
+}
+
+export async function getOpenCatalogJob(client: Client, request: Request) {
+    try {
+        console.log("start getOpenCatalogJob");
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        const atdID = request.body.atdID;
+        const dataTableResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(atdID).get();
+        return {
+            Success: true,
+            DataTableResponse: dataTableResponse
         };
     }
     catch (error) {
@@ -220,7 +244,7 @@ export async function createNewOpenCatalog(client: Client, request: Request) {
         return { Success: true, OpenCatalog: settingsResponse };
     }
     catch (error) {
-        console.log(error);
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -264,6 +288,7 @@ export async function addNewOpenCatalog(client: Client, request: Request) {
         return { Success: true, OpenCatalog: settingsResponse };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -283,6 +308,7 @@ export async function getOpenCatalogVersionData(client: Client, request: Request
         return { Success: true, OpenCatalogData: dataTableResponse };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -305,6 +331,7 @@ export async function saveOpenCatalogName(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -359,6 +386,7 @@ export async function deleteOpenCatalog(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -390,12 +418,35 @@ export async function stopPublishOpenCatalog(client: Client, request: Request) {
         return { Success: true };
     }
     catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
         }
     }
 };
+
+export async function scheduledPublishOpenCatalog(client: Client, request: Request) {
+    try {
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        const codeJobId = request.query.AsyncTaskExecution_codejob_uuid;
+        const codeJobResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').key(codeJobId).get();
+
+        if (codeJobResponse && codeJobResponse.CatalogId && codeJobResponse.AccessKey) {
+            if (!request.body) {
+                request.body = {};
+            }
+            request.body.atdID = codeJobResponse.CatalogId;
+            request.body.atdSecret = codeJobResponse.AccessKey;
+            request.body.comment = 'Scheduled Job';
+            await publishOpenCatalog(client, request);            
+        }        
+    }
+    catch (err) {
+        await monitorPublish(client, request.body.atdID, 'ERROR');     
+    }
+}
 
 export async function publishOpenCatalog(client: Client, request: Request) {
     try {
@@ -435,11 +486,16 @@ export async function publishOpenCatalog(client: Client, request: Request) {
             elasticSearchSubType: elasticSearchSubType,
             atdID: atdID,
             atdSecret: atdSecret
-        }
+        }        
+        
+        await monitorPublish(client, request.body.atdID, 'SUCCESS');
+
         const auditLog = await service.papiClient.post(`/addons/api/async/${client.AddonUUID}/publish/publishNewVersion`, publishBody);
         return { Success: true, ExecutionUUID: auditLog.ExecutionUUID, ElasticSearchSubType: elasticSearchSubType, OpenCatalog: responseSettings };
     }
-    catch (error) {
+    catch (error) {        
+        await monitorPublish(client, request.body.atdID, 'ERROR');
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -487,6 +543,28 @@ export async function revokeAccessKey(client: Client, request: Request) {
         };
     }
     catch (error) {
+        assertIsError(error);
+        return {
+            Success: false,
+            ErrorMessage: error.message
+        }
+    }
+}
+
+export async function saveOpenCatalogJob(client: Client, request: Request) {
+    try {
+        console.log("start saveOpenCatalogJob");
+        client.AddonUUID = "00000000-0000-0000-0000-00000ca7a109";
+        const service = new MyService(client);
+        let jobBody: any = {};
+
+        Object.assign(jobBody, request.body);
+
+        const settingsResponse = await service.papiClient.addons.data.uuid(client.AddonUUID).table('OpenCatalogScheduleJob').upsert(jobBody);
+        return { Success: true };
+    }
+    catch (error) {
+        assertIsError(error);
         return {
             Success: false,
             ErrorMessage: error.message
@@ -531,5 +609,39 @@ async function updateAdalTable(client, tableName, tableBody) {
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
+
+function assertIsError(error: unknown): asserts error is Error {
+    if (!(error instanceof Error)) {
+        throw error
+    }
+}
+
+
+async function monitorPublish(client: Client, catalogId: string, status: string) {
+    try {
+        let headers = {
+            "X-Pepperi-OwnerID": '00000000-0000-0000-0000-00000ca7a109',
+            "X-Pepperi-SecretKey": client.AddonSecretKey
+        }
+    
+        const service = new MyService(client);
+    
+        let body = {
+            Name: `catalog_${catalogId}_${new Date().getTime()}`,
+            Description: "Open Catalog Publish",
+            Status: status,
+            Message: getNotificationMessageText(status) + catalogId
+        }
+    
+        const Url: string = '/system_Health/notifications';    
+        await service.papiClient.post(Url, body, headers);        
+    } catch (err) {
+
+    }    
+}
+
+function getNotificationMessageText(status: string) {
+    return status === 'SUCCESS' ? 'Successfuly published Catalog Id - ' : 'Failed to publish Catalog Id - ';    
+}
 
 //#endregion

@@ -1,44 +1,40 @@
 <!-- main -->
 <div [ngStyle]="{ display: isMain ? 'grid':'none'}">
     <!-- <div class="left-container body-sm pep-spacing-element-negative pull-left flip" style="display: contents;"> -->
-        <div class="pep-spacing-element description-width" style="margin-top: 1rem; margin-bottom: 2rem;">
-            <p [innerHTML]="'Open_Catalog_Settings_Description' | translate"></p>
-        </div>
+    <div class="pep-spacing-element description-width" style="margin-top: 1rem; margin-bottom: 2rem;">
+        <p [innerHTML]="'Open_Catalog_Settings_Description' | translate"></p>
+    </div>
     <!-- </div> -->
+
     <div style="display: flow-root ">
         <!-- <div class="left-container body-sm pep-spacing-element-negative pull-left flip"> -->
-            <!-- <div class="pull-left flip ng-tns-c36-49 ng-star-inserted"> -->
-                <div class="pep-spacing-element pull-left flip" [ngStyle]="{ display: disableActions ? 'none':''}">
-                    <button mat-icon-button [matMenuTriggerFor]="menu" #editBtn mat-button class="pep-button icon-button md strong" pepMenuBlur>
-                        <mat-icon>
-                            <pep-icon name="system_edit"></pep-icon>
-                        </mat-icon>
-                    </button>
-                    <mat-menu #menu="matMenu">
-                        <ng-container *ngFor="let action of menuActions">
-                            <button mat-menu-item [disabled]="disableActions" (click)="onOpenCatalogActionClicked(action, tabs)">{{ action.value }}</button>
-                        </ng-container>
-                    </mat-menu>
-                </div>
-            <!-- </div> -->
+        <!-- <div class="pull-left flip ng-tns-c36-49 ng-star-inserted"> -->
+        <div class="pep-spacing-element pull-left flip" [ngStyle]="{ display: disableActions ? 'none':''}">
+            <button mat-icon-button [matMenuTriggerFor]="menu" #editBtn mat-button
+                class="pep-button icon-button md strong" pepMenuBlur>
+                <mat-icon>
+                    <pep-icon name="system_edit"></pep-icon>
+                </mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+                <ng-container *ngFor="let action of menuActions">
+                    <button mat-menu-item [disabled]="disableActions"
+                        (click)="onOpenCatalogActionClicked(action, tabs)">{{ action.value }}</button>
+                </ng-container>
+            </mat-menu>
+        </div>
+        <!-- </div> -->
         <!-- </div> -->
         <div class="pull-right flip">
-            <button class="mat-button pepperi-button strong md pep-spacing-element" (click)="onAddOpenCatalogClicked()">{{ 'Add_Open_Catalog' | translate }}</button>
+            <button class="mat-button pepperi-button strong md pep-spacing-element"
+                (click)="onAddOpenCatalogClicked()">{{ 'Add_Open_Catalog' | translate }}</button>
         </div>
     </div>
     <div>
         <div class="list-container" #openCatalogListContainer>
-            <pep-list
-                #openCatalogList
-                [firstFieldAsLink]="false"
-                [isReport]="true"
-                [supportSorting]="false"
-                [supportResizing]="false"
-                [selectionTypeForActions]="'single'"
-                [noDataFoundMsg]="'No data'"
-                [viewType]="'table'"
-                (listChange)="onListChange($event)"
-                (fieldClick)="onCustomizeFieldClick($event)"
+            <pep-list #openCatalogList [firstFieldAsLink]="false" [isReport]="true" [supportSorting]="false"
+                [supportResizing]="false" [selectionTypeForActions]="'single'" [noDataFoundMsg]="'No data'"
+                [viewType]="'table'" (listChange)="onListChange($event)" (fieldClick)="onCustomizeFieldClick($event)"
                 (selectedItemsChange)="selectedRowsChanged($event)">
             </pep-list>
         </div>
@@ -49,42 +45,50 @@
 <div class="formContainer" [ngStyle]="{ display: isMain ? 'none':''}" style="max-width: 832px;">
     <pep-top-bar [inline]="true" class="top-bar">
         <div header-start-content>
-            <pep-button class="pep-spacing-element" sizeType="sm" iconName="arrow_left"  (buttonClick)="onDone(tabs)">
+            <pep-button class="pep-spacing-element" sizeType="sm" iconName="arrow_left" (buttonClick)="onDone(tabs)">
             </pep-button>
             <div class="title pep-spacing-element" style="margin-top: 0.3rem;">
                 <label [innerHTML]="openCatalog?.OpenCatalogName"></label>
             </div>
         </div>
         <div header-end-content>
-<!--             <div class="pep-spacing-element" style="margin-top: 0.3rem;">
+            <!--             <div class="pep-spacing-element" style="margin-top: 0.3rem;">
                 <span [innerHTML]="openCatalog?.Status || ''"></span>
             </div> -->
-            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? 'none':''}" disabled="true" class="pep-spacing-element weak" sizeType="sm" value="{{openCatalog?.Status || ''}}" >
+            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? 'none':''}" disabled="true"
+                class="pep-spacing-element weak" sizeType="sm" value="{{openCatalog?.Status || ''}}">
             </pep-button>
-            <pep-button class="pep-spacing-element weak" sizeType="sm" (buttonClick)="onPreview()" value="{{'Preview' | translate}}">
+            <pep-button class="pep-spacing-element weak" sizeType="sm" (buttonClick)="onPreview()"
+                value="{{'Preview' | translate}}">
             </pep-button>
-            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? '':'none'}" class="pep-spacing-element" sizeType="sm" styleType="strong" (buttonClick)="onPublish()" value="{{'Publish' | translate}}">
+            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? '':'none'}" class="pep-spacing-element"
+                sizeType="sm" styleType="strong" (buttonClick)="onPublish()" value="{{'Publish' | translate}}">
             </pep-button>
-            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? 'none':''}" class="pep-spacing-element" classNames="caution" sizeType="sm" styleType="strong" (buttonClick)="onStop()" value="{{'Stop_Publish' | translate}}">
+            <pep-button [ngStyle]="{ display: openCatalog?.PublishMode ? 'none':''}" class="pep-spacing-element"
+                classNames="caution" sizeType="sm" styleType="strong" (buttonClick)="onStop()"
+                value="{{'Stop_Publish' | translate}}">
             </pep-button>
         </div>
     </pep-top-bar>
     <mat-tab-group (selectedTabChange)="onTabChange()" #tabs>
-        <mat-tab label="{{'Open_Catalog_General_Tab' | translate}}">  
+        <mat-tab label="{{'Open_Catalog_General_Tab' | translate}}">
             <div [ngClass]="openCatalog?.PublishMode?'':'disable-accordion'">
                 <mat-accordion class="pep-accordion" [displayMode]="'flat'" [multi]="true">
                     <mat-expansion-panel class="mat-expansion-panel" [expanded]="'true'">
-                        <mat-expansion-panel-header >
+                        <mat-expansion-panel-header>
                             <mat-panel-title>{{ 'Open_Catalog_Name_Title' | translate }}</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="acc-description-width">
                             <p [innerHTML]="'Open_Catalog_Name_Description' | translate"></p>
                         </div>
                         <div style="display: flex;">
-                            <pep-textbox class="acc-content-width" [key]="'OpenCatalogName'" [placeholder]="'place holder'" [xAlignment]="'left'"
-                                [value]="openCatalog?.OpenCatalogName" [formattedValue]="openCatalog?.OpenCatalogName" (valueChange)="onValueChange($event, 'OpenCatalogName')" style="margin-right: 1rem;">
+                            <pep-textbox class="acc-content-width" [key]="'OpenCatalogName'"
+                                [placeholder]="'place holder'" [xAlignment]="'left'"
+                                [value]="openCatalog?.OpenCatalogName" [formattedValue]="openCatalog?.OpenCatalogName"
+                                (valueChange)="onValueChange($event, 'OpenCatalogName')" style="margin-right: 1rem;">
                             </pep-textbox>
-                            <button class="mat-button pep-button strong md" (click)="onOpenCatalogNameSave()" style="margin-top: 1.5rem;">
+                            <button class="mat-button pep-button strong md" (click)="onOpenCatalogNameSave()"
+                                style="margin-top: 1.5rem;">
                                 {{ 'Save' | translate }}
                             </button>
                         </div>
@@ -97,8 +101,9 @@
                             <p [innerHTML]="'Pepperi_Catalog_Description' | translate"></p>
                         </div>
                         <div>
-                            <pep-textbox class="acc-content-width" [key]="'CatalogName'" [placeholder]="'place holder'" [xAlignment]="'left'" [disabled]="'true'"
-                                [value]="openCatalog?.CatalogName || ''" [formattedValue]="openCatalog?.CatalogName || ''">
+                            <pep-textbox class="acc-content-width" [key]="'CatalogName'" [placeholder]="'place holder'"
+                                [xAlignment]="'left'" [disabled]="'true'" [value]="openCatalog?.CatalogName || ''"
+                                [formattedValue]="openCatalog?.CatalogName || ''">
                             </pep-textbox>
                         </div>
                     </mat-expansion-panel>
@@ -110,73 +115,48 @@
                             <p [innerHTML]="'Access_Key_Description' | translate"></p>
                         </div>
                         <div style="display: flex;">
-                            <pep-textarea class="acc-content-width" [key]="'AccessKey'" [xAlignment]="'left'" rowSpan=2.5 [disabled]="'true'"
-                                [value]="openCatalog?.AccessKey || ''"  style="margin-right: 1rem;">
+                            <pep-textarea class="acc-content-width" [key]="'AccessKey'" [xAlignment]="'left'"
+                                rowSpan=2.5 [disabled]="'true'" [value]="openCatalog?.AccessKey || ''"
+                                style="margin-right: 1rem;">
                             </pep-textarea>
-                            <button class="mat-button pep-button strong md" (click)="onCopyToClipboard()" style="margin-top: 1.5rem;">
+                            <button class="mat-button pep-button strong md" (click)="onCopyToClipboard()"
+                                style="margin-top: 1.5rem;">
                                 {{ 'Copy' | translate }}
                             </button>
                         </div>
                         <div>
-                            <button class="mat-button pep-button strong caution md pep-spacing-element" (click)="onRevokeAccessKeyDialog()">
+                            <button class="mat-button pep-button strong caution md pep-spacing-element"
+                                (click)="onRevokeAccessKeyDialog()">
                                 {{ 'Revoke' | translate }}
                             </button>
                         </div>
                     </mat-expansion-panel>
-        <!--             <mat-expansion-panel class="mat-expansion-panel">
+                    <mat-expansion-panel class="mat-expansion-panel">
                         <mat-expansion-panel-header>
-                            <mat-panel-title>{{ 'Scheduling_Title' | translate }}</mat-panel-title>
+                            <mat-panel-title>{{ 'Scheduled_Job_Title' | translate }}</mat-panel-title>
                         </mat-expansion-panel-header>
-                        <div>
-                            <span>{{ 'Scheduling_Description' | translate }}</span>
+                        <div class="scheduled-Job-descr">
+                            <div class="acc-description-width">
+                                <p [innerHTML]="'Scheduled_Job_Description' | translate"></p>
+                            </div>
+                            <addon-scheduler-job [job]="selectedJob" 
+                                (saveCatalog)="onSaveJobClicked($event)"></addon-scheduler-job>
                         </div>
-                        <div>
-                            <pep-select [emptyOption]="false" [key]="'Interval'" [value]="openCatalog?.Interval" [xAlignment]="'left'"
-                                [options]='[
-                                { "Key": "None", "Value": "None" },
-                                { "Key": "Daily", "Value": "Daily" },
-                                { "Key": "Weekly", "Value": "Weekly" }
-                                ]'>
-                            </pep-select>
-                            <pep-select [emptyOption]="false" [key]="'Interval'" [value]="openCatalog?.Interval" [xAlignment]="'left'"
-                                [options]='[
-                                { "Key": "Sunday", "Value": "Sunday" },
-                                { "Key": "Monday", "Value": "Monday" },
-                                { "Key": "Tuesday", "Value": "Tuesday" },
-                                { "Key": "Wednesday", "Value": "Wednesday" },
-                                { "Key": "Thursday", "Value": "Thursday" },
-                                { "Key": "Friday", "Value": "Friday" },
-                                { "Key": "Saturday", "Value": "Saturday" }
-                                ]'>
-                            </pep-select>
-                            <pep-textbox [key]="'AccessKey'" [placeholder]="'place holder'" [xAlignment]="'left'"> UTC
-                            </pep-textbox>
-                            <button class="mat-button pep-button strong md pep-spacing-element" (click)="onSchedulingSave()">
-                                {{ 'Save' | translate }}
-                            </button>
-                        </div>
-                    </mat-expansion-panel> -->
+                    </mat-expansion-panel>
                 </mat-accordion>
             </div>
         </mat-tab>
-        <mat-tab label="{{'Open_Catalog_History_Tab' | translate}}"> 
+        <mat-tab label="{{'Open_Catalog_History_Tab' | translate}}">
             <div class="history-container">
                 <div class="title pep-spacing-element" style="margin-top: 0.3rem;">
                     <label [innerHTML]="'Open_Catalog_History_Tab_Title' | translate"></label>
                 </div>
                 <div>
                     <div class="list-container" #openCatalogHistoryListContainer>
-                        <pep-list
-                            #openCatalogHistoryList
-                            [firstFieldAsLink]="false"
-                            [supportSorting]="false"
-                            [disabled]="true"
-                            [supportResizing]="false"
-                            [selectionTypeForActions]="'none'"
-                            [noDataFoundMsg]="'No_Publish_History' | translate"
-                            [viewType]="'table'"
-                            (listChange)="onListChange($event)"
-                            (fieldClick)="onCustomizeFieldClick($event)">
+                        <pep-list #openCatalogHistoryList [firstFieldAsLink]="false" [supportSorting]="false"
+                            [disabled]="true" [supportResizing]="false" [selectionTypeForActions]="'none'"
+                            [noDataFoundMsg]="'No_Publish_History' | translate" [viewType]="'table'"
+                            (listChange)="onListChange($event)" (fieldClick)="onCustomizeFieldClick($event)">
                         </pep-list>
                     </div>
                 </div>
@@ -192,7 +172,8 @@
     <pep-dialog class="dialog-textarea-container" [title]="'Choose_Catalog' | translate">
         <ng-container pep-dialog-content>
             <mat-radio-group [(ngModel)]="selectedCatalog" style="display: contents;">
-                <mat-radio-button class="pep-radio-button" *ngFor="let catalog of catalogs" [value]="catalog?.InternalID" style='margin:0rem 1rem 1rem 0rem;'>
+                <mat-radio-button class="pep-radio-button" *ngFor="let catalog of pluginService.catalogs"
+                    [value]="catalog?.InternalID" style='margin:0rem 1rem 1rem 0rem;'>
                     {{catalog?.ExternalID}}
                 </mat-radio-button>
             </mat-radio-group>
@@ -254,7 +235,8 @@
 <ng-template #publishDialogTemplate>
     <pep-dialog class="dialog-textarea-container" [title]="'Add_Comment' | translate">
         <ng-container pep-dialog-content>
-            <pep-textarea [key]="'publishComment'" [xAlignment]="'left'" rowSpan=2 [value]="''" (valueChange)="onValueChanged($event)" style="width: 25rem;">
+            <pep-textarea [key]="'publishComment'" [xAlignment]="'left'" rowSpan=2 [value]="''"
+                (valueChange)="onValueChanged($event)" style="width: 25rem;">
             </pep-textarea>
         </ng-container>
         <div pep-dialog-actions class="pep-pep-spacing-element-negative">

@@ -9,6 +9,8 @@
     "Pepperi_Catalog_Description": "The catalog defined in Pepperi that is associated with this Open Catalog. It cannot be changed after the Open Catalog is created.",
     "Access_Key_Title": "Access Key",
     "Access_Key_Description": "An access key for the Pepperi Open Catalog API. This key is valid for this catalog only.",
+    "Scheduled_Job_Title": "Scheduling",
+    "Scheduled_Job_Description": "Schedule the repeating occurrences for exporting the data of the open catalog",
     "Save": "Save",
     "Revoke": "Revoke",
     "Cancel": "Cancel",
@@ -35,7 +37,10 @@
         "AddFailed": "Failed to add Open Catalog",
         "PreviewFailed": "Failed to open Open Catalog Preview",
         "SaveNameFailed": "Failed to save Open Catalog Name",
+        "SaveCodeJobFailed": "Failed to save Code Job Info",
+        "SaveScheduledJobFailed": "Failed to save Scheduled Job Info",
         "RevokeFailed": "Revoke new Access Key failed",
-        "DeleteFailed": "Delete Open Catalog failed"
+        "DeleteFailed": "Delete Open Catalog failed",
+        "InvalidTimePattern": "Invalid Time Pattern"
     }
 }
