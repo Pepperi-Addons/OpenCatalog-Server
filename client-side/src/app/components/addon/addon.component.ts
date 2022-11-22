@@ -143,8 +143,7 @@ export class AddonComponent implements OnInit {
         return row;
     }
 
-    initOpenCatalogDataRowField(openCatalog: any, key: any): PepFieldData {
-
+    initOpenCatalogDataRowField(openCatalog: any, key: any): PepFieldData {        
         const dataRowField: PepFieldData = {
             ApiName: key,
             Title: this.translate.instant(key),
@@ -171,7 +170,7 @@ export class AddonComponent implements OnInit {
                 dataRowField.ColumnWidth = 25;
                 dataRowField.Title = 'Transaction Type';
                 dataRowField.FieldType = FIELD_TYPE.InternalLink;
-                dataRowField.Value = `settings_block/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions`;
+                dataRowField.Value = `settings_block/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions/${openCatalog.Key}/general`;
                 break;
             case 'LastPublishDate':
                 dataRowField.ColumnWidth = 25;
