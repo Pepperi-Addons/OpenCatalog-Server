@@ -18,6 +18,7 @@ import { PepListComponent } from "@pepperi-addons/ngx-lib/list";
 import { PepMenuItem } from "@pepperi-addons/ngx-lib/menu";
 import { PepDialogActionButton, PepDialogData, PepDialogService } from "@pepperi-addons/ngx-lib/dialog";
 import { AppService } from "../../app.service";
+import { DateConverterService } from '../../services/date-converter.service';
 import { MatDialogRef } from "@angular/material/dialog";
 import { IScheduledJob, IScheduledJobRequest, JobTypes } from '../scheduler-job/scheduler-job.model';
 
@@ -71,7 +72,8 @@ export class AddonComponent implements OnInit {
         public layoutService: PepLayoutService,
         private dataConvertorService: PepDataConvertorService,
         private dialogService: PepDialogService,
-        private appService: AppService
+        private appService: AppService,
+        private dateConverterService: DateConverterService
     ) {
 
         // Parameters sent from url
@@ -101,7 +103,7 @@ export class AddonComponent implements OnInit {
             }
             this.openCatalogHistory = this.openCatalogHistory ? this.openCatalogsHistory.filter(x => x.ActivityTypeDefinitionUUID == this.openCatalog.ATDUUID) : this.openCatalogHistory;
             this.pluginService.catalogs = result.Catalogs;
-            this.loadOpenCatalogs(this.openCatalogs);                
+            this.loadOpenCatalogs(this.openCatalogs);
         });
     }
 
@@ -168,8 +170,8 @@ export class AddonComponent implements OnInit {
             case 'ATDName':
                 dataRowField.ColumnWidth = 25;
                 dataRowField.Title = 'Transaction Type';
-                dataRowField.FieldType = FIELD_TYPE.InternalLink;               
-                dataRowField.Value = `settings/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions/types/${openCatalog["Key"]}/general`;
+                dataRowField.FieldType = FIELD_TYPE.InternalLink;
+                dataRowField.Value = `settings_block/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions`;
                 break;
             case 'LastPublishDate':
                 dataRowField.ColumnWidth = 25;
@@ -246,8 +248,9 @@ export class AddonComponent implements OnInit {
                 dataRowField.ColumnWidth = 12;
                 dataRowField.Title = 'Date';
                 if (openCatalogHistory[key]) {
-                    var datetime = new Date(openCatalogHistory[key].toString());
-                    dataRowField.FormattedValue = datetime.toUTCString();
+                    const newDate = this.dateConverterService.getLocalDateTime(openCatalogHistory[key]);
+                    dataRowField.Value = newDate;
+                    dataRowField.FormattedValue = newDate;
                 }
                 break;
             case 'Version':
@@ -583,8 +586,8 @@ export class AddonComponent implements OnInit {
     onSchedulingSave() {
     }
 
-    onValueChanged(event) {
-        this[event.key] = event.value;
+    onValueChanged(event) {        
+        this.publishComment = event;
     }
 
     selectedRowsChanged(selectedRowsCount) {
@@ -597,7 +600,7 @@ export class AddonComponent implements OnInit {
     }
 
     onSaveJobClicked(job: IScheduledJob) {
-        this.appService.saveScheduledJob(this.getScheduledJobRequestObject(job)).subscribe((res: any) => {            
+        this.appService.saveScheduledJob(this.getScheduledJobRequestObject(job)).subscribe((res: any) => {
             if (res?.Success) {
                 this.loadOpenCatalogs(this.openCatalogs);
             }
@@ -625,7 +628,7 @@ export class AddonComponent implements OnInit {
             day = this.pluginService.getCronExpressionDay(job.Day);
         }
 
-        return minute + ' ' + hour + ' * * ' + day;        
+        return minute + ' ' + hour + ' * * ' + day;
     }
 
     private getJobType(job: IScheduledJob) {
@@ -649,7 +652,7 @@ export class AddonComponent implements OnInit {
             case JobTypes.Create:
                 request.CodeJob = {
                     Type: 'AddonJob',
-                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
+                    CodeJobName: 'job_' + this.openCatalog.CatalogID,
                     Description: 'Scheduled Publish Open Catalog',
                     IsScheduled: true,
                     AddonPath: "settings",
@@ -663,7 +666,7 @@ export class AddonComponent implements OnInit {
             case JobTypes.Update:
                 request.CodeJob = {
                     UUID: this.selectedJob.Key,
-                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
+                    CodeJobName: 'job_' + this.openCatalog.CatalogID,
                     CronExpression: this.getCronExpression(job),
                     CodeJobIsHidden: false
                 }
@@ -672,8 +675,8 @@ export class AddonComponent implements OnInit {
             case JobTypes.Delete:
                 request.CodeJob = {
                     UUID: this.selectedJob.Key,
-                    CodeJobName: 'job_' + this.openCatalog.CatalogId,
-                    CodeJobIsHidden: true                    
+                    CodeJobName: 'job_' + this.openCatalog.CatalogID,
+                    CodeJobIsHidden: true
                 }
                 break;
         }

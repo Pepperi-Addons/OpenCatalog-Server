@@ -8,6 +8,7 @@ import {
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SchedulerJobService } from './scheduler-job.service';
 import { PepSchedulerJobFrequency, PepWeekDays, IScheduledJob } from './scheduler-job.model';
+import { DateConverterService } from '../../services/date-converter.service';
 
 
 @Component({
@@ -42,7 +43,8 @@ export class SchedulerJobComponent implements OnInit {
 
     constructor(
         private _fb: FormBuilder,
-        private _schedulerJobService: SchedulerJobService
+        private _schedulerJobService: SchedulerJobService,
+        private _dateConverterService: DateConverterService
     ) {
 
     }
@@ -60,8 +62,8 @@ export class SchedulerJobComponent implements OnInit {
             this.jobDay = val.Day;
         }
 
-        if (val.Frequency === 'daily' || val.Frequency === 'weekly' && val.Time) {
-            this.jobPublishTime = this._schedulerJobService.getLocalTime(val.Time);
+        if (val.Frequency === 'daily' || val.Frequency === 'weekly' && val.Time) {            
+            this.jobPublishTime = this._dateConverterService.getLocalTime(val.Time);
         }
     }
 
@@ -94,8 +96,8 @@ export class SchedulerJobComponent implements OnInit {
         if (this.jobDay) {
             job.Day = this.jobDay;
         }
-        if (this.jobPublishTime) {
-            job.Time = this._schedulerJobService.getUtcTime(this.jobPublishTime);
+        if (this.jobPublishTime) {            
+            job.Time = this._dateConverterService.getUtcTime(this.jobPublishTime);
         }
 
         this.saveCatalog.emit(job);
