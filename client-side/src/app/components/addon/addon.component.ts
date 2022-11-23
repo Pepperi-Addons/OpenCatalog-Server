@@ -18,7 +18,7 @@ import { PepListComponent } from "@pepperi-addons/ngx-lib/list";
 import { PepMenuItem } from "@pepperi-addons/ngx-lib/menu";
 import { PepDialogActionButton, PepDialogData, PepDialogService } from "@pepperi-addons/ngx-lib/dialog";
 import { AppService } from "../../app.service";
-import { DateTimeConverterService } from '../../services/datetime-converter';
+import { DateConverterService } from '../../services/date-converter.service';
 import { MatDialogRef } from "@angular/material/dialog";
 import { IScheduledJob, IScheduledJobRequest, JobTypes } from '../scheduler-job/scheduler-job.model';
 
@@ -73,7 +73,7 @@ export class AddonComponent implements OnInit {
         private dataConvertorService: PepDataConvertorService,
         private dialogService: PepDialogService,
         private appService: AppService,
-        private dateTimeConverterService: DateTimeConverterService
+        private dateConverterService: DateConverterService
     ) {
 
         // Parameters sent from url
@@ -143,8 +143,7 @@ export class AddonComponent implements OnInit {
         return row;
     }
 
-    initOpenCatalogDataRowField(openCatalog: any, key: any): PepFieldData {
-
+    initOpenCatalogDataRowField(openCatalog: any, key: any): PepFieldData {        
         const dataRowField: PepFieldData = {
             ApiName: key,
             Title: this.translate.instant(key),
@@ -171,7 +170,7 @@ export class AddonComponent implements OnInit {
                 dataRowField.ColumnWidth = 25;
                 dataRowField.Title = 'Transaction Type';
                 dataRowField.FieldType = FIELD_TYPE.InternalLink;
-                dataRowField.Value = `settings_block/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions`;
+                dataRowField.Value = `settings_block/04de9428-8658-4bf7-8171-b59f6327bbf1/transactions/${openCatalog.Key}/general`;
                 break;
             case 'LastPublishDate':
                 dataRowField.ColumnWidth = 25;
@@ -248,9 +247,9 @@ export class AddonComponent implements OnInit {
                 dataRowField.ColumnWidth = 12;
                 dataRowField.Title = 'Date';
                 if (openCatalogHistory[key]) {
-                    const newDate = this.dateTimeConverterService.getLocalDateTime(openCatalogHistory[key]);
+                    const newDate = this.dateConverterService.getLocalDateTime(openCatalogHistory[key]);
                     dataRowField.Value = newDate;
-                    dataRowField.FormattedValue = newDate;                                    
+                    dataRowField.FormattedValue = newDate;
                 }
                 break;
             case 'Version':
@@ -586,8 +585,8 @@ export class AddonComponent implements OnInit {
     onSchedulingSave() {
     }
 
-    onValueChanged(event) {
-        this.publishComment = event;        
+    onValueChanged(event) {        
+        this.publishComment = event;
     }
 
     selectedRowsChanged(selectedRowsCount) {

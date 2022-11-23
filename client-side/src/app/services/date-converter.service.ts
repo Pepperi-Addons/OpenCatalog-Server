@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
 @Injectable({
   providedIn: "root",
 })
-export class DateTimeConverterService {   
+export class DateConverterService {   
 
     getLocalDateTime(utcDatetime: string) {        
         const utcDTTM = new Date(utcDatetime);        
@@ -40,3 +40,4 @@ export class DateTimeConverterService {
         return (remainder < 0 ? 24 + remainder : remainder).toString().padStart(2, '0');
     }
 }
+

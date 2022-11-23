@@ -65,5 +65,6 @@ export class SchedulerJobService {
                 value: 'Sunday'
             }
         ]
-    }    
+    }  
+
 }
