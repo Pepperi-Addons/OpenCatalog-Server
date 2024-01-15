@@ -92,8 +92,8 @@ export class AppService {
     this.httpService.getHttpCall("");
   }
 
-  saveScheduledJob(req: any) {
-    const headers = new HttpHeaders({ 'X-Pepperi-OwnerID': '00000000-0000-0000-0000-00000ca7a109' });
+  saveScheduledJob(req: any) {//NEED A FIX, TALK TO ROI, MUST SEND X-Pepperi-SecretKey
+    const headers = new HttpHeaders({ 'X-Pepperi-SecretKey': '', 'X-Pepperi-OwnerID': '00000000-0000-0000-0000-00000ca7a109' });
 
     return this.postPapiCall('/code_jobs', req.CodeJob, { headers: headers }).pipe(
       switchMap(res => {
