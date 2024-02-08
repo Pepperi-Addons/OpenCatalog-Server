@@ -114,21 +114,26 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
         "X-Pepperi-OwnerID": client.AddonUUID,
         "X-Pepperi-SecretKey": client.AddonSecretKey
     }
-    const responsePNS = await service.papiClient.post('/notification/subscriptions', bodyPNS, headersPNS);
-
-    //creates table if it doesn't exist
-    const configTable =  await service.papiClient.get(`/addons/data/schemes/OpenCatalogScheduleJob`);
-    if (!configTable) {
-        const headers = {
-            "X-Pepperi-OwnerID": client.AddonUUID,
-            "X-Pepperi-SecretKey": client.AddonSecretKey
-        }
-        const bodyScheduleJob: AddonDataScheme = {
-            Name: 'OpenCatalogScheduleJob',
-            Type: 'meta_data'            
-        }
-        const responseScheduleJob = await service.papiClient.post('/addons/data/schemes', bodyScheduleJob, headers);
-    }
+    const responsePNS = await service.papiClient.post('/notification/subscriptions', bodyPNS, headersPNS); 
+    
+  //creates table if it doesn't exist - DI-23815
+  try {
+    await service.papiClient.get(`/addons/data/schemes/OpenCatalogScheduleJob`);
+  } catch {
+    const headers = {
+      "X-Pepperi-OwnerID": client.AddonUUID,
+      "X-Pepperi-SecretKey": client.AddonSecretKey,
+    };
+    const bodyScheduleJob: AddonDataScheme = {
+      Name: "OpenCatalogScheduleJob",
+      Type: "meta_data",
+    };
+    await service.papiClient.post(
+      "/addons/data/schemes",
+      bodyScheduleJob,
+      headers
+    );
+  }
 
     return { success: true, resultObject: {} }
 }
