@@ -69,7 +69,7 @@ export async function items(client: Client, request: Request) {
     }
     const from = page * page_size;
     const where = request.query.where ? request.query.where.split(" and ") : undefined;
-    const search_string = request.query.search_string;
+    const search_string = request.query.search_string.includes(' ') ? request.query.search_string.replace(/ /g, '*') :  request.query.search_string;
     const search_string_fields = request.query.search_string_fields ? request.query.search_string_fields.replace(" ", "").split(",") : undefined;
     const order_by = request.query.order_by ? request.query.order_by.split(" ") : undefined;
 
