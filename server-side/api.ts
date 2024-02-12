@@ -261,7 +261,7 @@ function convertWhereToQuery(where, body) {
             const condition = where[i].split("!=");
             let keyValue = {};
             let values = new Array();
-            condition[1].split(",").forEach(value => {
+            condition[1].split(";").forEach(value => {
                 values.push(value);
             });
             keyValue[condition[0]] = values;

@@ -92,43 +92,54 @@ export class AppService {
     this.httpService.getHttpCall("");
   }
 
-  saveScheduledJob(req: any) {//NEED A FIX, TALK TO ROI, MUST SEND X-Pepperi-SecretKey
-    const headers = new HttpHeaders({ 'X-Pepperi-SecretKey': '', 'X-Pepperi-OwnerID': '00000000-0000-0000-0000-00000ca7a109' });
 
-    return this.postPapiCall('/code_jobs', req.CodeJob, { headers: headers }).pipe(
-      switchMap(res => {
-        if (res?.UUID) {
-          let jobRequest: any = {};          
-          switch (req.JobType) {
-            case JobTypes.Create:
-              Object.assign(jobRequest, req.Job);             
-              jobRequest.Key = res.UUID;
-              jobRequest.AccessKey = req.AccessKey;
-              jobRequest.CatalogId = req.CatalogId;
-              break;
-            case JobTypes.Update:
-              Object.assign(jobRequest, req.Job);
-              jobRequest.Key = res.UUID;
-              jobRequest.AccessKey = req.AccessKey;
-              jobRequest.Hidden = false;
-              break;
-            case JobTypes.Delete:              
-              jobRequest.Key = res.UUID;
-              jobRequest.Hidden = true;
-              break;
-            default:
-              return throwError(`Error while saving scheduled job`);
-          }
-          return this.postAddonServerAPI('settings', 'saveOpenCatalogJob', jobRequest, {});
-        } else {
-          return throwError(`Error while saving code job`);
-        }
-      }),
-      catchError(error => {
-        return throwError(`Error while saving code job: ${error}`);
-      })
-    )
-  }
+  saveScheduledJobJob(req: any) {
+    return this.postAddonServerAPI(
+        "settings",
+        "saveScheduledJob",
+        req.CodeJob,
+        {}
+    ).pipe(
+        switchMap((res) => {
+            if (res?.UUID) {
+                let jobRequest: any = {};
+                switch (req.JobType) {
+                    case JobTypes.Create:
+                        Object.assign(jobRequest, req.Job);
+                        jobRequest.Key = res.UUID;
+                        jobRequest.AccessKey = req.AccessKey;
+                        jobRequest.CatalogId = req.CatalogId;
+                        break;
+                    case JobTypes.Update:
+                        Object.assign(jobRequest, req.Job);
+                        jobRequest.Key = res.UUID;
+                        jobRequest.AccessKey = req.AccessKey;
+                        jobRequest.Hidden = false;
+                        break;
+                    case JobTypes.Delete:
+                        jobRequest.Key = res.UUID;
+                        jobRequest.Hidden = true;
+                        break;
+                    default:
+                        return throwError(
+                            `Error while saving scheduled job`
+                        );
+                }
+                return this.postAddonServerAPI(
+                    "settings",
+                    "saveOpenCatalogJob",
+                    jobRequest,
+                    {}
+                );
+            } else {
+                return throwError(`Error while saving code job`);
+            }
+        }),
+        catchError((error) => {
+            return throwError(`Error while saving code job: ${error}`);
+        })
+    );
+}
 
   postToAPI(endpoint) {
     const url = `http://localhost:4500/api/${endpoint}`;

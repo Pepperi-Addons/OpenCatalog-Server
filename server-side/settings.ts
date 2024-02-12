@@ -644,4 +644,19 @@ function getNotificationMessageText(status: string) {
     return status === 'SUCCESS' ? 'Successfuly published Catalog Id - ' : 'Failed to publish Catalog Id - ';    
 }
 
+
+export async function saveScheduledJob(client: Client, request: Request) {
+  const headers = {
+    "X-Pepperi-OwnerID": "00000000-0000-0000-0000-00000ca7a109",
+    "X-Pepperi-SecretKey": client.AddonSecretKey,
+  };
+
+  const codeJob = request.body;
+
+  const service = new MyService(client);
+
+  const res = await service.papiClient.post("/code_jobs", codeJob, headers);
+
+  return res;
+}
 //#endregion
