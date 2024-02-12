@@ -93,7 +93,7 @@ export class AppService {
   }
 
 
-  saveScheduledJobJob(req: any) {
+  saveScheduledJob(req: any) {
     return this.postAddonServerAPI(
         "settings",
         "saveScheduledJob",
