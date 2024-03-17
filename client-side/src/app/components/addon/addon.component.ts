@@ -497,6 +497,13 @@ export class AddonComponent implements OnInit {
                             clearInterval(that.updateStatusInterval);
                             that.init();
                         }
+                        else if (openCatalogData.Status.includes('504 - Gateway Timeout')) {
+                            that.openCatalog.Status = '';
+                            that.openCatalog.PublishMode = true;
+                            that.openInfoDialog('Error', 'Open_Catalog_MESSAGES.PublishFailed',',Please remove old open catalog data and try again');
+                            clearInterval(that.updateStatusInterval);
+                            that.init();
+                        }
                         else if (openCatalogData.Status.includes('Fail')) {
                             that.openCatalog.Status = '';
                             that.openCatalog.PublishMode = true;
