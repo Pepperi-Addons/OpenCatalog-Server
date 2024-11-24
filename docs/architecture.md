@@ -9,11 +9,6 @@
 
 ---
 
-## Infrastructure
-
-
----
-
 ## Data Model
 
 - The catalogs data and configuration  stores in 4 ADAL tables:
