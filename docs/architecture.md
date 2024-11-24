@@ -12,10 +12,10 @@
 ## Data Model
 
 - The catalogs data and configuration  stores in 4 ADAL tables:
-    - OpenCatalogSettings: for list of open catalogs.
-    - OpenCatalogSecret: for each open catalog we keep the published version and secret key.
-    - OpenCatalogData: keep the history of each publish catalog.
-    - OpenCatalogScheduleJob: Keep the catalog settings.
+    - **OpenCatalogSettings**: for list of open catalogs.
+    - **OpenCatalogSecret**: for each open catalog we keep the published version and secret key.
+    - **OpenCatalogData**: keep the history of each publish catalog.
+    - **OpenCatalogScheduleJob**: Keep the catalog settings.
 
 - Then PNS (pepperi notification service) subscribe to adal changes cause when a new version of open catalog is installed we need to delete the old index from elastic. (installation.ts line 54).
 
