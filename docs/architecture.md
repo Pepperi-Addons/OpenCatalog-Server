@@ -18,9 +18,6 @@
     - **OpenCatalogScheduleJob**: Keep the catalog settings.
 
 - Then PNS (pepperi notification service) subscribe to adal changes cause when a new version of open catalog is installed we need to delete the old index from elastic. (installation.ts line 54).
-
-- Then we create new index on the elastic (line 65).
-
 - On the ElasticSearch there is an index per user, created from installing Pepperi ElasticSearch addon.
 - The index build like : oc-{distributorUUID}
 - Installing the OpenCatalog addon will create a new type on the user's index: open_catalog.
